@@ -124,6 +124,18 @@ func (s *Scope) Start(name string, component Lifecycle, stage StartStage) error 
 	return nil
 }
 
+func (s *Scope) CloseChild(component Lifecycle) error {
+	s.access.Lock()
+	child, loaded := s.children[component]
+	if !loaded {
+		s.access.Unlock()
+		return nil
+	}
+	delete(s.children, component)
+	s.access.Unlock()
+	return child.Close()
+}
+
 func (s *Scope) Close() error {
 	s.access.Lock()
 	s.cancel()
